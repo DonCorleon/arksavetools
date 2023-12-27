@@ -41,7 +41,6 @@ class ArkSaveDatabase:
                 if uuid == wanted_object or wanted_object.lower() == 'all':
                     filename = f'binfiles/{uuid}.bin'
                     byte_buffer = row[1]
-                    logger.debug(byte_buffer)
                     logger.info(f'Record {uuid} found. Outputting to file...')
                     with open(filename, 'wb') as f:
                         f.write(byte_buffer)
@@ -77,6 +76,7 @@ class ArkSaveDatabase:
             logger.info(f'Found {len(self.save_context.actorLocations)} Actor Locations')
         else:
             logger.debug('No actor transforms found')
+
     def read_header(self):
         header_data = self.get_custom_value("SaveHeader")
         self.save_context.save_version = header_data.read_short()
@@ -334,7 +334,7 @@ class dino_container():
                     if colour_name == key['name']:
                         rgb = key['rgb']
                         return [colour_index, colour_name, rgb, position]
-        logger.warning(f'Unknown colour found on dino : {colour_index}')
+        #logger.warning(f'Unknown colour found on dino : {colour_index}')
         return [colour_index, 'Unknown', (0, 0, 0), position]
     def add_stats(self, position, value):
         if position == 0:

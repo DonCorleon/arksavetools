@@ -1,6 +1,3 @@
-from collections import OrderedDict
-from typing import List
-
 class ArkValueType():
     Boolean = "BoolProperty"
     Byte = "ByteProperty"
@@ -20,7 +17,7 @@ class ArkValueType():
     UInt64 = "UInt64Property"
     SoftObject = "SoftObjectProperty"
     Map = "MapProperty"
-
+    Set = "SetProperty"
 
     def __init__(self, name, clazz):
         self.name = name
@@ -46,7 +43,8 @@ class ArkValueType():
                 "UInt32Property": 'UInt32',
                 "UInt64Property": 'UInt64',
                 "SoftObjectProperty": 'SoftObject',
-                "MapProperty": 'Map'
+                "MapProperty": 'Map',
+                "SetProperty": 'Set'
         }
         try:
             return types[struct_type]

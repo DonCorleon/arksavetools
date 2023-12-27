@@ -20,7 +20,10 @@ class ObjectReference:
                 cls.value = reader.read_uuid()
             return cls.value
         object_type = reader.read_int()
-        if object_type == 0:
+        if object_type == -1:
+            cls.type = cls.TYPE_UNKNOWN
+            cls.value = None
+        elif object_type == 0:
             cls.type = cls.TYPE_ID
             cls.value = reader.read_int()
         elif object_type == 1:
@@ -31,6 +34,6 @@ class ObjectReference:
             cls.type = cls.TYPE_PATH_NO_TYPE
             cls.value = reader.read_string()
 
-    def __str__(self):
+    def __repr__(self):
         return self.value
 

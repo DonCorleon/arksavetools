@@ -2,8 +2,16 @@ import logging
 import sys
 
 
+class GameObjectReaderConfiguration:
+    def __init__(self):
+        self.uuid_Filter = ''
+        self.class_name_filter = 'Character_BP_C'
+        self.game_object_filter = ''
+
+
 class CustomFormatter(logging.Formatter):
 
+    green = '\x1b[18;32m'
     grey = '\x1b[18;21m'
     blue = '\x1b[38;5;39m'
     yellow = '\x1b[38;5;226m'

@@ -18,10 +18,3 @@ class ActorTransform:
 
     def __repr__(self):
         return f'x : {self.x}, y : {self.y}, z : {self.z}, lat/lon : {self.lat_long_conversion()}'
-
-if __name__ == '__main__':
-    x = -196926.73090169512
-    y = -195115.46730948595
-    lat = math.floor(y / 685) / 10 + 50
-    lon = math.floor(x / 685) / 10 + 50
-    print(lat, lon)

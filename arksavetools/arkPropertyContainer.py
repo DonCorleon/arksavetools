@@ -1,10 +1,17 @@
-from property.arkProperty import *
 from typing import Type, List, Optional, Union
-
+from arksavetools.config import *
+from property.arkProperty import ArkProperty
 
 class ArkPropertyContainer:
     def __init__(self):
         self.properties = []
+
+    def __repr__(self):
+        result=[]
+        for prop in self.properties:
+            result.append(prop)
+        return str(result)
+
 
     def read_properties(self, byte_buffer):
         last_property_position = byte_buffer.get_position()
@@ -18,7 +25,7 @@ class ArkPropertyContainer:
                 if ark_property is None or ark_property.name == "None":
                     return
         except Exception as e:
-            logger.debug("Could not read properties", e)
+            logger.debug(f"Could not read properties, {last_property_position} -  {e}")
             byte_buffer.set_position(last_property_position)
             byte_buffer.debug_binary_data(byte_buffer.read_bytes(byte_buffer.size() - byte_buffer.get_position()))
             raise e

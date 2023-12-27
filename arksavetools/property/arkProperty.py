@@ -1,4 +1,7 @@
+import zlib
+
 from arksavetools.property.arkObjectReference import ObjectReference
+from arksavetools.property.arkSet import ArkSet
 from arksavetools.property.arkValueType import ArkValueType
 from arksavetools.structs.arkStructType import from_type_name
 from arksavetools.structs.arkUnknownStruct import UnknownStruct
@@ -11,11 +14,13 @@ class ArkProperty:
         self.position = position
         self.unknown_byte = unknown_byte
         self.value = value
-        #logger.debug(f'    AP >> value:{self.value}')
+        #if type == 'MapProperty':
+        #    logger.warning(f'    MAP >> name:{self.name}, type : {self.type}, position : {self.position}, unknown_byte : {self.unknown_byte}, value:{self.value}')
 
-    def __str__(self):
-        return f'Description >> name : {self.name}, type : {self.type}, value : {self.value}'
-    
+
+    def __repr__(self):
+        return f'name : {self.name}, type : {self.type}, value : {self.value}'
+
     @staticmethod
     def read_property(byte_buffer, in_array=False):
         key = byte_buffer.read_main_name()
@@ -75,10 +80,76 @@ class ArkProperty:
         elif value_type_name == "ArrayProperty":
             return ArkProperty.read_array_property(key, value_type_name, position, byte_buffer, data_size)
         elif value_type_name == "MapProperty":
-            return ArkProperty(key, value_type_name, position, byte_buffer.read_byte(), ArkProperty.read_property(byte_buffer))
+            return ArkProperty.read_map_property(key, value_type_name, position, byte_buffer, data_size)
         else:
             logger.error("Unknown property type {} with data size {} at position {}".format(value_type_name, data_size, start_data_position))
             raise RuntimeError("Unknown property type {} with data size {} at position {}".format(value_type_name, data_size, start_data_position))
+
+    @staticmethod
+    def read_map_property(key: str, value_type_name: str, position: int, byte_buffer, data_size: int):
+        #from arksavetools.arkPropertyContainer import ArkPropertyContainer
+        key_type = byte_buffer.read_name()
+        value_type = byte_buffer.read_name()
+
+        unknown_byte = byte_buffer.read_byte()
+        start_of_data = byte_buffer.get_position()
+        byte_buffer.expect(0, byte_buffer.read_int())
+        count = byte_buffer.read_int()
+
+        map_entries = []
+        try:
+            for _ in range(count):
+                if value_type == ArkValueType.Struct:
+                    map_entries.append(ArkProperty.read_struct_map(key_type, byte_buffer))
+                else:
+                    raise ValueError(f"Unsupported map value type {value_type}")
+        finally:
+            if byte_buffer.get_position() != start_of_data + data_size:
+                print(f"Map read incorrectly, bytes left to read: {start_of_data + data_size - byte_buffer.get_position()}")
+                byte_buffer.debug_binary_data(byte_buffer.read_bytes(start_of_data + data_size - byte_buffer.get_position()))
+        logger.warning(map_entries)
+        return ArkProperty(key, value_type_name, position, unknown_byte, map_entries)
+        #new_container = ArkPropertyContainer()
+        #return ArkProperty(key, value_type_name, position, unknown_byte, new_container.read_properties(map_entries))
+
+    @staticmethod
+    def read_struct_map(key_type: ArkValueType, byte_buffer):
+        #from arksavetools.arkPropertyContainer import ArkPropertyContainer
+        property_values = []
+        key_name = ArkProperty.read_property_value(key_type, byte_buffer)
+        while True:
+            value_name = byte_buffer.read_name()
+            if value_name is None or value_name == "None":
+                break
+            map_value_type = byte_buffer.read_name()
+            if map_value_type == ArkValueType.Set:
+                property_values.append(ArkProperty(value_name, map_value_type, 0, 0, ArkProperty.read_set_property(byte_buffer)))
+            else:
+                raise ValueError(f"Unsupported map value type {map_value_type} at position {byte_buffer.get_position()}")
+        logger.warning(property_values)
+        return ArkProperty(key_name, "MapProperty", 0, 0, property_values)
+        #new_container = ArkPropertyContainer()
+        #return ArkProperty(key_name, "MapProperty", 0, 0, new_container.read_properties(property_values))
+
+    @staticmethod
+    def read_set_property(byte_buffer):
+        values = set()
+        data_size = byte_buffer.read_int()
+        byte_buffer.expect(0, byte_buffer.read_int())
+        value_type = byte_buffer.read_name()
+
+        unknown_byte = byte_buffer.read_byte()
+
+        start_of_data = byte_buffer.get_position()
+        skip_count = byte_buffer.read_int()
+        object_count = byte_buffer.read_int()
+
+        for _ in range(object_count):
+            values.add(ArkProperty.read_property_value(value_type, byte_buffer))
+
+        if start_of_data + data_size != byte_buffer.get_position():
+            logger.warning(f"Set read incorrectly, bytes left to read: {start_of_data + data_size - byte_buffer.get_position()}")
+        return ArkSet(value_type, values)
 
     @staticmethod
     def read_struct_array(byte_buffer, array_type, count):

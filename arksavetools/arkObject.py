@@ -4,7 +4,7 @@ from arksavetools.arkPropertyContainer import ArkPropertyContainer
 from arksavetools.arkSaveContext import SaveContext
 from arksavetools.structs.arkRotator import ArkRotator
 from arksavetools.structs.arkVector import ArkVector
-
+import json
 
 class ArkObject(ArkPropertyContainer):
     def __init__(self, reader):
@@ -25,5 +25,9 @@ class ArkObject(ArkPropertyContainer):
         reader.expect(0, reader.read_int())
         self.reader = reader
         #self.save_context = SaveContext()
-    def __str__(self):
+
+    def toJson(self):
+        return json.dumps(self, default=lambda o: o.__dict__)
+
+    def __repr__(self):
         return f"UUID: {self.uuid}, item: {self.item}, dataFileIndex: {self.dataFileIndex}, className: {self.className}, dataFileIndex: {self.dataFileIndex}, propertiesOffset: {self.propertiesOffset}, vector : {self.vector}, rotator : {self.rotator}, names: {self.names}"

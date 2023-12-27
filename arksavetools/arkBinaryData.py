@@ -1,7 +1,10 @@
+import zlib
 from typing import Dict, Union
 import struct
 import uuid
 
+from arksavetools.arkGameObject import ArkGameObject
+from arksavetools.arkPropertyContainer import ArkPropertyContainer
 from arksavetools.arkSaveContext import SaveContext
 from arksavetools.structs.arkActorTransform import ActorTransform
 from arksavetools.structs.arkVector import ArkVector
@@ -13,6 +16,7 @@ class byte_Buffer:
         self.data = memoryview(data)
         self.byte_buffer = memoryview(data)
         self._position = 0
+
 
     def position(self):
         return self._position
@@ -36,6 +40,9 @@ class ArkBinaryData:
     def __init__(self, data: bytes, save_context: SaveContext = None):
         self.byte_buffer = byte_Buffer(data)
         self.save_context = save_context
+
+    def __repr__(self):
+        return f'{str(self.byte_buffer.byte_buffer.hex())}'
 
     def read_string(self) -> Union[str, None]:
         length = self.read_int()
@@ -181,7 +188,7 @@ class ArkBinaryData:
         self.skip_bytes(8)
         return value
 
-    def read_actor_transforms(self) -> Dict[uuid.UUID, ArkVector]:
+    def read_actor_transforms(self) -> Dict[uuid.UUID, ActorTransform]:
         locations = {}
         termination_uuid = uuid.UUID('00000000-0000-0000-0000-000000000000')
         while True:
@@ -201,6 +208,22 @@ class ArkBinaryData:
         for i in range(count):
             result.append(self.read_string())  # Assuming read_string() reads a string
         return result
+    def reset(self):
+        self.byte_buffer.new_buff_pos(0)
+
+
+
 
 if __name__ == '__main__':
-    pass
+
+    def load_names_data():
+        with open('names.txt','r') as f:
+            names = {}
+            lines = f.readlines()
+            for line in lines:
+                data = line.split(' : ')
+                names.update({int(data[0]): data[1].replace('\n', '')})
+        return names
+
+
+

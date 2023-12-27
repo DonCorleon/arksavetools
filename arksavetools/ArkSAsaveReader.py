@@ -1,6 +1,7 @@
 from arksavetools.arkSaveDatabase import ArkSaveDatabase, dino_container
 from arksavetools.config import *
 
+import jsonpickle
 import uuid
 
 from arksavetools.libs.helpers import *
@@ -25,6 +26,7 @@ def cheat_doexit():
     logger.info('Closing as requested')
     exit()
 
+
 if __name__ == '__main__':
     dbfile = 'Z:/ASAServer/ShooterGame/Saved/SavedArks/TheIsland_WP/TheIsland_WP.ark'
     save = ArkSaveDatabase(dbfile)
@@ -44,17 +46,43 @@ if __name__ == '__main__':
     players = save.player_locations(objects)
     for player in players:
         print(f"Player {player['name']} is @ {player['location'].lat_long_conversion()}")
+
+    with open('names.txt','w') as f:
+        unique_names = set()
+        for name in save.save_context.names:
+            unique_names.add(name)
+            f.write(f'{name} : {save.save_context.names[name]}\n')
+    with open('unique_names.txt','w') as f:
+        for name in sorted(unique_names):
+            if 'InstancedFoliageActor' in save.save_context.names[name]:
+                continue
+            elif '/Game/' in save.save_context.names[name]:
+                continue
+            else:
+                f.write(f'{save.save_context.names[name]}\n')
+    '''
+    for object in objects:
+        if 'Cryopod' in objects[object].name:
+            print(f'name:{objects[object].name}, uuid:{objects[object].uuid}')
+            print(objects[object].uuid)
+            for property in objects[object].properties:
+                print('    ',property)
+            print()
+    '''
+    search_id = '8a002c58-35e5-a941-9d2d-7e0e7ae888bb'
+    search_id = 'c496c3ce-b190-f14e-8168-816a97efbaa0'
+    logger.debug(jsonpickle.encode(objects[uuid.UUID(search_id)], indent=4, unpicklable=False, separators=(',', ':')))
     cheat_doexit()
-
-
 
     creature_search = 'Character_BP_'
     search_string = creature_search
-    #search_string = 'Baryonyx_Character_BP_C'
-    #search_string = 'Thylacoleo_Character_BP_C'
     #search_string = 'DungBeetle_Character_BP_C'
+    #search_string = 'Sheep_Character_BP_C'
+    search_string = 'Thylacoleo_Character_BP_C'
     #search_string = 'Argent_Character_BP_C'
-    search_string = 'Sheep_Character_BP_C'
+    #search_string = 'Otter_Character_BP_C'
+    #search_string = 'Equus_Character_BP_C'
+    #search_string = 'Baryonyx_Character_BP_C'
 
     spacer = '--------------------------------------------'
     print(spacer)
@@ -63,6 +91,12 @@ if __name__ == '__main__':
     count = 0
     min_level = 50
     #'''
+    for id in tamed:
+        print()
+        print(objects[id].uuid, objects[id].name)
+        print(jsonpickle.encode(objects[id], indent=4, unpicklable=False, separators=(',', ':')))
+        pass
+    exit()
     for id in wild:
         if search_string in objects[id].name:
             dino = dino_container()
@@ -80,6 +114,9 @@ if __name__ == '__main__':
                 print('    Colours:',dino.colours)
                 print('    Exp.   :',dino.experience)
                 print('    Loc.   :',dino.location)
+
+
+
 
     cheat_doexit()
 
